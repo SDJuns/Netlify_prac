@@ -1,31 +1,36 @@
 from flask import Flask, request, render_template
 import pandas as pd
+import os
 
 app = Flask(__name__)
 
-# 학생 이름과 학번 CSV 파일 로드
-df = pd.read_csv("학생이름_학번v2.csv")
+excel_file_path = "/Users/sindongjun/Flask_py/학생이름_학번v2.csv"
 
-@app.route("/", methods=["GET", "POST"])
+@app.route('/', methods=['GET', 'POST'])
 def index():
     result = None
-    if request.method == "POST":
-        search_value = request.form.get("search_value")
-        # 학번을 이용하여 검색
-        if search_value.isdigit():
-            found = df[df['학번'] == int(search_value)]
+    if request.method == 'POST':
+        search_value = request.form['search_value']
+        if os.path.exists(excel_file_path):
+            df = pd.read_csv(excel_file_path)
+
+            if '학번' not in df.columns or '성명' not in df.columns:
+                result = "데이터 파일에 '학번' 또는 '성명' 열이 없습니다."
+            else:
+                if search_value.isdigit() and int(search_value) in df['학번'].values:
+                    student_info = df[df['학번'] == int(search_value)].iloc[0]
+                    result = f"{student_info['성명']} {search_value}은 납부자 입니다."
+                elif search_value in df['학번'].astype(str).values:
+                    student_info = df[df['학번'].astype(str) == search_value].iloc[0]
+                    result = f"{student_info['성명']} {search_value}은 납부자 입니다."
+                else:
+                    result = f"학번 {search_value}님은 납부하지 않으셨습니다."
         else:
-            found = df[df['이름'] == search_value]
+            result = "데이터 파일을 찾을 수 없습니다."
 
-        if not found.empty:
-            result = f"학번: {found.iloc[0]['학번']}, 이름: {found.iloc[0]['이름']}, 납부 여부: {found.iloc[0]['납부여부']}"
-        else:
-            result = "해당 정보를 찾을 수 없습니다."
+    return render_template('index.html', result=result)
 
-    return render_template("index.html", result=result)
-
-# Lambda로 실행할 수 있도록 설정
-if __name__ == "__main__":
+if __name__ == '__main__':
     app.run(debug=True)
 
 
