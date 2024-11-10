@@ -12,7 +12,7 @@ def load_data(file_path):
 def check_fee_status(student_id, data):
     result = data[data['학번'].astype(int) == int(student_id)]
     if not result.empty:
-        student_name = result['이름'].values[0]
+        student_name = result['성명'].values[0]
         return f"{student_name}({student_id})님은 납부하셨습니다."
     else:
         return "학회비를 납부하지 않았습니다."
