@@ -2,7 +2,7 @@ import pandas as pd
 import streamlit as st
 
 # CSV 파일 경로
-CSV_FILE_PATH = '/Users/sindongjun/Flask_py/학생이름_학번v2.csv'
+CSV_FILE_PATH = 'csvfolder/data'
 
 # 데이터 불러오기
 def load_data(file_path):
