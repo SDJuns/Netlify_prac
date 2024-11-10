@@ -1,37 +1,32 @@
-from flask import Flask, request, render_template
 import pandas as pd
-import os
+import streamlit as st
 
-app = Flask(__name__)
+# CSV 파일 경로
+CSV_FILE_PATH = '/Users/sindongjun/Flask_py/학생이름_학번v2.csv'
 
-excel_file_path = "/Users/sindongjun/Flask_py/학생이름_학번v2.csv"
+# 데이터 불러오기
+def load_data(file_path):
+    return pd.read_csv(file_path)
 
-@app.route('/', methods=['GET', 'POST'])
-def index():
-    result = None
-    if request.method == 'POST':
-        search_value = request.form['search_value']
-        if os.path.exists(excel_file_path):
-            df = pd.read_csv(excel_file_path)
+# 학회비 납부 여부 확인 함수
+def check_fee_status(student_id, data):
+    result = data[data['학번'].astype(int) == int(student_id)]
+    if not result.empty:
+        return f"{student_id}님은 납부하셨습니다."
+    else:
+        return "학회비를 납부하지 않았습니다."
 
-            if '학번' not in df.columns or '성명' not in df.columns:
-                result = "데이터 파일에 '학번' 또는 '성명' 열이 없습니다."
-            else:
-                if search_value.isdigit() and int(search_value) in df['학번'].values:
-                    student_info = df[df['학번'] == int(search_value)].iloc[0]
-                    result = f"{student_info['성명']} {search_value}은 납부자 입니다."
-                elif search_value in df['학번'].astype(str).values:
-                    student_info = df[df['학번'].astype(str) == search_value].iloc[0]
-                    result = f"{student_info['성명']} {search_value}은 납부자 입니다."
-                else:
-                    result = f"학번 {search_value}님은 납부하지 않으셨습니다."
-        else:
-            result = "데이터 파일을 찾을 수 없습니다."
+# Streamlit 앱 시작
+st.title('학회비 납부 여부 확인 프로그램')
 
-    return render_template('index.html', result=result)
+# 학번 입력 받기
+student_id = st.text_input('학번을 입력하세요:')
 
-if __name__ == '__main__':
-    app.run(debug=True)
-
-
+if st.button('확인하기'):
+    if student_id:
+        data = load_data(CSV_FILE_PATH)
+        status = check_fee_status(student_id, data)
+        st.write(status)
+    else:
+        st.write("학번을 입력해주세요.")
 # C:/Users/C-GD/anaconda3/python.exe c:/Users/C-GD/Desktop/Flask_py-20241108T034417Z-001/Flask_py/StudentInfo/StudentId.py
